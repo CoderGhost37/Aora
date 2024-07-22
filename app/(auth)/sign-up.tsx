@@ -7,8 +7,10 @@ import CustomButton from '@/components/CustomButton'
 import FormField from '@/components/FormField'
 
 import { createUser } from '@/lib/appwrite'
+import { useGlobalContext } from '@/context/GlobalProvider'
 
 export default function SignUp() {
+    const { setUser, setIsLoggedIn } = useGlobalContext()
     const [form, setForm] = React.useState({
         username: "",
         email: "",
@@ -25,6 +27,8 @@ export default function SignUp() {
             (async () => {
                 try {
                     const result = await createUser(form.username, form.email, form.password)
+                    setUser(result)
+                    setIsLoggedIn(true)
 
                     router.replace('/home')
                 } catch (error: any) {

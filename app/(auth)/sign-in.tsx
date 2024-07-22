@@ -5,9 +5,11 @@ import { images } from '@/constants'
 import { Link, router } from 'expo-router'
 import CustomButton from '@/components/CustomButton'
 import FormField from '@/components/FormField'
-import { signIn } from '@/lib/appwrite'
+import { getCurrentUser, signIn } from '@/lib/appwrite'
+import { useGlobalContext } from '@/context/GlobalProvider'
 
 export default function SignIn() {
+    const { setUser, setIsLoggedIn } = useGlobalContext()
     const [form, setForm] = React.useState({
         email: "",
         password: "",
@@ -23,6 +25,9 @@ export default function SignIn() {
             (async () => {
                 try {
                     await signIn(form.email, form.password)
+                    const result = await getCurrentUser()
+                    setUser(result)
+                    setIsLoggedIn(true)
 
                     router.replace('/home')
                 } catch (error: any) {
