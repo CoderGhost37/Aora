@@ -1,22 +1,35 @@
-import { View, Text, ScrollView, Image, Dimensions } from 'react-native'
+import { View, Text, ScrollView, Image, Dimensions, Alert } from 'react-native'
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { images } from '@/constants'
-import { Link } from 'expo-router'
+import { Link, router } from 'expo-router'
 import CustomButton from '@/components/CustomButton'
 import FormField from '@/components/FormField'
+import { signIn } from '@/lib/appwrite'
 
 export default function SignIn() {
     const [form, setForm] = React.useState({
         email: "",
         password: "",
     })
-    const [isSubmitting, setIsSubmitting] = React.useState(false)
+    const [isPending, startTransition] = React.useTransition()
 
     const submit = async () => {
-        setIsSubmitting(true)
-        // Add your logic here
-        setIsSubmitting(false)
+        if (!form.email || !form.password) {
+            Alert.alert('Error', 'Please fill in all the fields.')
+        }
+
+        startTransition(() => {
+            (async () => {
+                try {
+                    await signIn(form.email, form.password)
+
+                    router.replace('/home')
+                } catch (error: any) {
+                    Alert.alert('Error', error.message)
+                }
+            })()
+        });
     }
 
     return (
@@ -59,7 +72,7 @@ export default function SignIn() {
                         title="Sign In"
                         handlePress={submit}
                         containerStyles="mt-7"
-                        isLoading={isSubmitting}
+                        isLoading={isPending}
                     />
 
                     <View className="flex justify-center pt-5 flex-row gap-2">
