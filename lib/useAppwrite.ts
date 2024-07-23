@@ -11,7 +11,6 @@ export const useAppwrite = (fn: () => Promise<Models.Document[]>) => {
         setIsLoading(true);
         try {
             const res = await fn()
-            console.log(res)
             setData(res)
         } catch (error: any) {
             Alert.alert('Error', error.message);

@@ -39,6 +39,8 @@ export async function createUser(username: string, email: string, password: stri
             username,
             avatar: avatarUrl
         })
+
+        return newUser
     } catch (error) {
         console.log(error)
         throw new Error('Something went wrong.')
@@ -102,5 +104,25 @@ export async function searchPosts(query: string) {
         return posts.documents
     } catch (error) {
         throw new Error('Failed to fetch posts')
+    }
+}
+
+export async function getUserPosts(userId: string) {
+    try {
+        const posts = await databases.listDocuments(appwriteConfig.databaseId, appwriteConfig.videoCollectionId, [Query.equal('creator', userId)])
+
+        return posts.documents
+    } catch (error) {
+        throw new Error('Failed to fetch posts.')
+    }
+}
+
+export async function signOut() {
+    try {
+        const session = await account.deleteSession("current");
+
+        return session;
+    } catch (error) {
+        throw new Error("Failed to sign out");
     }
 }
