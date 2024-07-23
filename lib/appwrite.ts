@@ -1,4 +1,5 @@
-import { Account, Avatars, Client, Databases, ID, Query } from 'react-native-appwrite'
+import { Account, Avatars, Client, Databases, ID, ImageGravity, Query, Storage } from 'react-native-appwrite'
+import * as ImagePicker from "expo-image-picker";
 
 export const appwriteConfig = {
     endpoint: 'https://cloud.appwrite.io/v1',
@@ -20,6 +21,7 @@ client
 const account = new Account(client);
 const avatars = new Avatars(client);
 const databases = new Databases(client);
+const storage = new Storage(client);
 
 export async function createUser(username: string, email: string, password: string) {
     try {
@@ -122,6 +124,77 @@ export async function signOut() {
         const session = await account.deleteSession("current");
 
         return session;
+    } catch (error) {
+        throw new Error("Failed to sign out");
+    }
+}
+
+export async function getFilePreview(fileId: string, type: string) {
+    let fileUrl
+    try {
+        if (type === 'video') {
+            fileUrl = storage.getFileView(appwriteConfig.storageId, fileId)
+        } else if (type === 'image') {
+            fileUrl = storage.getFilePreview(appwriteConfig.storageId, fileId, 2000, 2000, ImageGravity.Top, 100)
+        } else {
+            throw new Error('Invalid file type')
+        }
+
+        if (!fileUrl) {
+            throw new Error('Failed to fetch file')
+        }
+
+        return fileUrl
+    } catch (error) {
+        throw new Error('Failed to fetch file')
+    }
+}
+
+export async function uploadFile(file: ImagePicker.ImagePickerAsset, type: string) {
+    try {
+        if (!file) {
+            throw new Error('No file provided')
+        }
+
+        const asset = {
+            name: file.fileName as string,
+            type: file.mimeType as string,
+            size: file.fileSize as number,
+            uri: file.uri
+        }
+
+        const uploadedFile = await storage.createFile(appwriteConfig.storageId, ID.unique(), asset)
+
+        const fileUrl = await getFilePreview(uploadedFile.$id, type);
+    } catch (error) {
+        throw new Error('Failed to upload file')
+    }
+}
+
+export async function createVideoPost(form: {
+    title: string;
+    video: ImagePicker.ImagePickerAsset | null;
+    thumbnail: ImagePicker.ImagePickerAsset | null;
+    prompt: string;
+}, userId: string) {
+    if (form.prompt === "" || form.title === "" || !form.thumbnail || !form.video) {
+        throw new Error("Please provide all fields");
+    }
+    try {
+        const [thumbnail, video] = await Promise.all([
+            uploadFile(form.thumbnail, 'image'),
+            uploadFile(form.video, 'video')
+        ])
+
+        const newPost = await databases.createDocument(appwriteConfig.databaseId, appwriteConfig.videoCollectionId, ID.unique(), {
+            title: form.title,
+            prompt: form.prompt,
+            thumbnail,
+            video,
+            creator: userId
+        })
+
+        return newPost
     } catch (error) {
         throw new Error("Failed to sign out");
     }
