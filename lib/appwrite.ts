@@ -94,3 +94,13 @@ export async function getLatestPosts() {
         throw new Error('Failed to fetch posts')
     }
 }
+
+export async function searchPosts(query: string) {
+    try {
+        const posts = await databases.listDocuments(appwriteConfig.databaseId, appwriteConfig.videoCollectionId, [Query.search('title', query)])
+
+        return posts.documents
+    } catch (error) {
+        throw new Error('Failed to fetch posts')
+    }
+}
