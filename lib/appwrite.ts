@@ -81,7 +81,7 @@ export async function getCurrentUser() {
 
 export async function getAllPosts() {
     try {
-        const posts = await databases.listDocuments(appwriteConfig.databaseId, appwriteConfig.videoCollectionId)
+        const posts = await databases.listDocuments(appwriteConfig.databaseId, appwriteConfig.videoCollectionId, [Query.orderDesc('$createdAt')])
 
         return posts.documents
     } catch (error) {
@@ -111,7 +111,7 @@ export async function searchPosts(query: string) {
 
 export async function getUserPosts(userId: string) {
     try {
-        const posts = await databases.listDocuments(appwriteConfig.databaseId, appwriteConfig.videoCollectionId, [Query.equal('creator', userId)])
+        const posts = await databases.listDocuments(appwriteConfig.databaseId, appwriteConfig.videoCollectionId, [Query.equal('creator', userId), Query.orderDesc('$createdAt')])
 
         return posts.documents
     } catch (error) {
