@@ -74,3 +74,23 @@ export async function getCurrentUser() {
         throw new Error('User not found')
     }
 }
+
+export async function getAllPosts() {
+    try {
+        const posts = await databases.listDocuments(appwriteConfig.databaseId, appwriteConfig.videoCollectionId)
+
+        return posts.documents
+    } catch (error) {
+        throw new Error('Failed to fetch posts')
+    }
+}
+
+export async function getLatestPosts() {
+    try {
+        const posts = await databases.listDocuments(appwriteConfig.databaseId, appwriteConfig.videoCollectionId, [Query.orderDesc('$createdAt'), Query.limit(7)])
+
+        return posts.documents
+    } catch (error) {
+        throw new Error('Failed to fetch posts')
+    }
+}
